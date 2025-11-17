@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "849751322035",
+    "project_id": "riftboundtracker",
+    "storage_bucket": "riftboundtracker.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:849751322035:android:7c773775877834dd2befc6",
+        "android_client_info": {
+          "package_name": "com.example.mon_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAdkLZTLGNPdA-A9WkQ3YHPYc_98mGkSbc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
