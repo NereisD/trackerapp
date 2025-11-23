@@ -63,7 +63,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '849751322035',
     projectId: 'riftboundtracker',
     storageBucket: 'riftboundtracker.firebasestorage.app',
-    iosBundleId: 'com.example.monApp',
+    iosBundleId: 'com.nereide.cn',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
@@ -72,7 +72,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '849751322035',
     projectId: 'riftboundtracker',
     storageBucket: 'riftboundtracker.firebasestorage.app',
-    iosBundleId: 'com.example.monApp',
+    iosBundleId: 'com.nereide.cn',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
