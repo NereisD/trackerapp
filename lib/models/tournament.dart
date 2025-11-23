@@ -20,8 +20,30 @@ class Tournament {
     required this.isCompleted,
   });
 
-  int get totalWins => rounds.fold(0, (sum, round) => sum + round.playerWins);
-  int get totalLosses => rounds.fold(0, (sum, round) => sum + round.opponentWins);
+  // Compte les rounds gagnés (pas les parties individuelles)
+  int get totalWins =>
+      rounds
+          .where(
+            (round) =>
+                round.isCompleted && round.playerWins > round.opponentWins,
+          )
+          .length;
+  // Compte les rounds perdus
+  int get totalLosses =>
+      rounds
+          .where(
+            (round) =>
+                round.isCompleted && round.playerWins < round.opponentWins,
+          )
+          .length;
+  // Compte les rounds en égalité
+  int get totalDraws =>
+      rounds
+          .where(
+            (round) =>
+                round.isCompleted && round.playerWins == round.opponentWins,
+          )
+          .length;
 
   Map<String, dynamic> toJson() {
     return {
@@ -40,17 +62,17 @@ class Tournament {
       id: json['id'],
       name: json['name'],
       playerDeckId: json['playerDeckId'],
-      rounds: (json['rounds'] as List)
-          .map((r) => Round.fromJson(r))
-          .toList(),
-      createdAt: json['createdAt'] is Timestamp
-          ? (json['createdAt'] as Timestamp).toDate()
-          : DateTime.parse(json['createdAt']),
-      completedAt: json['completedAt'] != null
-          ? (json['completedAt'] is Timestamp
-              ? (json['completedAt'] as Timestamp).toDate()
-              : DateTime.parse(json['completedAt']))
-          : null,
+      rounds: (json['rounds'] as List).map((r) => Round.fromJson(r)).toList(),
+      createdAt:
+          json['createdAt'] is Timestamp
+              ? (json['createdAt'] as Timestamp).toDate()
+              : DateTime.parse(json['createdAt']),
+      completedAt:
+          json['completedAt'] != null
+              ? (json['completedAt'] is Timestamp
+                  ? (json['completedAt'] as Timestamp).toDate()
+                  : DateTime.parse(json['completedAt']))
+              : null,
       isCompleted: json['isCompleted'],
     );
   }

@@ -60,36 +60,44 @@ class Deck {
       imagePath: 'assets/images/decks/Annie.webp',
       colors: [DeckColor.red, DeckColor.purple],
     ),
+    // Azir - commentaire temporaire
+    /*
     Deck(
       id: 'Azir',
       name: 'Azir',
       imagePath: 'assets/images/decks/Azir.webp',
       colors: [DeckColor.green, DeckColor.yellow],
     ),
+    */
     Deck(
       id: 'Darius',
       name: 'Darius',
       imagePath: 'assets/images/decks/Darius.webp',
       colors: [DeckColor.red, DeckColor.yellow],
     ),
+
+    /*
     Deck(
       id: 'Draven',
       name: 'Draven',
       imagePath: 'assets/images/decks/Draven.webp',
       colors: [DeckColor.red, DeckColor.purple],
     ),
+    */
     Deck(
       id: 'Garen',
       name: 'Garen',
       imagePath: 'assets/images/decks/Garen.webp',
       colors: [DeckColor.orange, DeckColor.yellow],
     ),
+    /*
     Deck(
       id: 'Irelia',
       name: 'Irelia',
       imagePath: 'assets/images/decks/Irelia.webp',
       colors: [DeckColor.green, DeckColor.purple],
     ),
+    */
     Deck(
       id: 'Jinx',
       name: 'Jinx',
@@ -132,12 +140,14 @@ class Deck {
       imagePath: 'assets/images/decks/Sett.webp',
       colors: [DeckColor.orange, DeckColor.yellow],
     ),
+    /*
     Deck(
       id: 'Sivir',
       name: 'Sivir',
       imagePath: 'assets/images/decks/Sivir.webp',
       colors: [DeckColor.orange, DeckColor.purple],
     ),
+    */
     Deck(
       id: 'Teemo',
       name: 'Teemo',
@@ -162,12 +172,14 @@ class Deck {
       imagePath: 'assets/images/decks/Yasuo.webp',
       colors: [DeckColor.green, DeckColor.purple],
     ),
+    /*
     Deck(
       id: 'Renata',
       name: 'Renata',
       imagePath: 'assets/images/decks/Renata.webp',
       colors: [DeckColor.blue, DeckColor.yellow],
     ),
+    */
   ];
 
   static Deck getDeckById(String id) {

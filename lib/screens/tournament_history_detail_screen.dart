@@ -17,20 +17,6 @@ class _TournamentHistoryDetailScreenState
     extends State<TournamentHistoryDetailScreen> {
   final Set<int> _expandedRounds = {};
 
-  int get playerTotalWins {
-    return widget.tournament.rounds.fold(
-      0,
-      (sum, round) => sum + round.playerWins,
-    );
-  }
-
-  int get opponentTotalWins {
-    return widget.tournament.rounds.fold(
-      0,
-      (sum, round) => sum + round.opponentWins,
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final playerDeck = Deck.getDeckById(widget.tournament.playerDeckId);
@@ -79,24 +65,40 @@ class _TournamentHistoryDetailScreenState
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      '$playerTotalWins',
+                      '${widget.tournament.totalWins}',
                       style: const TextStyle(
                         fontSize: 32,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(width: 16),
-                    Text(
-                      '$opponentTotalWins',
-                      style: const TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
+                    const SizedBox(width: 8),
                     const Text(
-                      '0',
+                      '-',
                       style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '${widget.tournament.totalLosses}',
+                      style: const TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    const Text(
+                      '-',
+                      style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '${widget.tournament.totalDraws}',
+                      style: const TextStyle(
                         fontSize: 32,
                         fontWeight: FontWeight.bold,
                       ),
@@ -170,6 +172,9 @@ class _TournamentHistoryDetailScreenState
                           round.opponentDeckId,
                         );
                         final playerWon = round.playerWins > round.opponentWins;
+                        final isTie =
+                            round.playerWins == round.opponentWins &&
+                            round.isCompleted;
 
                         return Card(
                           margin: const EdgeInsets.only(bottom: 12),
@@ -258,13 +263,19 @@ class _TournamentHistoryDetailScreenState
                                         ],
                                       ),
                                     ),
-                                    // Icône victoire/défaite
+                                    // Icône victoire/défaite/égalité
                                     Icon(
-                                      playerWon
-                                          ? Icons.check_circle
-                                          : Icons.cancel,
+                                      isTie
+                                          ? Icons.close
+                                          : (playerWon
+                                              ? Icons.check_circle
+                                              : Icons.cancel),
                                       color:
-                                          playerWon ? Colors.green : Colors.red,
+                                          isTie
+                                              ? Colors.orange
+                                              : (playerWon
+                                                  ? Colors.green
+                                                  : Colors.red),
                                       size: 32,
                                     ),
                                   ],

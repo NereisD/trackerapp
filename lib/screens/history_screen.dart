@@ -167,6 +167,25 @@ class _TournamentCard extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.orange.shade100,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            '${tournament.totalDraws}D',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.orange.shade900,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
                         if (tournament.isCompleted)
                           Container(
                             padding: const EdgeInsets.symmetric(

@@ -57,20 +57,6 @@ class _TournamentDetailScreenState extends State<TournamentDetailScreen> {
     }
   }
 
-  int get playerTotalWins {
-    return widget.tournament.rounds.fold(
-      0,
-      (sum, round) => sum + round.playerWins,
-    );
-  }
-
-  int get opponentTotalWins {
-    return widget.tournament.rounds.fold(
-      0,
-      (sum, round) => sum + round.opponentWins,
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final playerDeck = Deck.getDeckById(widget.tournament.playerDeckId);
@@ -89,69 +75,39 @@ class _TournamentDetailScreenState extends State<TournamentDetailScreen> {
             width: double.infinity,
             padding: const EdgeInsets.all(16),
             color: Colors.white,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Deck joueur
-                Column(
-                  children: [
-                    Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        image: DecorationImage(
-                          image: AssetImage(playerDeck.imagePath),
-                          fit: BoxFit.cover,
-                        ),
-                      ),
+                // Photo du deck
+                Container(
+                  width: 120,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    image: DecorationImage(
+                      image: AssetImage(playerDeck.imagePath),
+                      fit: BoxFit.cover,
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      playerDeck.name,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      '$playerTotalWins victoires',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-                // VS
-                const Text(
-                  'VS',
-                  style: TextStyle(
-                    fontSize: 24,
+                const SizedBox(height: 12),
+                // Nom du deck
+                Text(
+                  playerDeck.name,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                // Score actuel (victoires - défaites - égalités)
+                Text(
+                  '${widget.tournament.totalWins} - ${widget.tournament.totalLosses} - ${widget.tournament.totalDraws}',
+                  style: const TextStyle(
+                    fontSize: 32,
                     fontWeight: FontWeight.bold,
                     color: Colors.deepPurple,
                   ),
-                ),
-                // Adversaires
-                Column(
-                  children: [
-                    const Icon(Icons.people, size: 80, color: Colors.grey),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Adversaires',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      '$opponentTotalWins victoires',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-                  ],
                 ),
               ],
             ),
@@ -168,6 +124,8 @@ class _TournamentDetailScreenState extends State<TournamentDetailScreen> {
                 final round = widget.tournament.rounds[index];
                 final opponentDeck = Deck.getDeckById(round.opponentDeckId);
                 final playerWon = round.playerWins > round.opponentWins;
+                final isTie =
+                    round.playerWins == round.opponentWins && round.isCompleted;
 
                 return Card(
                   margin: const EdgeInsets.only(bottom: 12),
@@ -240,10 +198,15 @@ class _TournamentDetailScreenState extends State<TournamentDetailScreen> {
                             ],
                           ),
                         ),
-                        // Icône victoire/défaite
+                        // Icône victoire/défaite/égalité
                         Icon(
-                          playerWon ? Icons.check_circle : Icons.cancel,
-                          color: playerWon ? Colors.green : Colors.red,
+                          isTie
+                              ? Icons.close
+                              : (playerWon ? Icons.check_circle : Icons.cancel),
+                          color:
+                              isTie
+                                  ? Colors.orange
+                                  : (playerWon ? Colors.green : Colors.red),
                           size: 32,
                         ),
                       ],

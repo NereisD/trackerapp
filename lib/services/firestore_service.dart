@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:mon_app/models/tournament.dart';
+import 'package:mon_app/models/user_profile.dart';
 
 class FirestoreService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
@@ -64,5 +65,23 @@ class FirestoreService {
         .collection('tournaments')
         .doc(tournamentId)
         .delete();
+  }
+
+  // Récupérer le profil utilisateur
+  Future<UserProfile?> getUserProfile(String userId) async {
+    final doc = await _db.collection('users').doc(userId).get();
+
+    if (doc.exists) {
+      return UserProfile.fromJson(doc.data()!);
+    }
+    return null;
+  }
+
+  // Mettre à jour le profil utilisateur
+  Future<void> updateUserProfile(UserProfile profile) async {
+    await _db
+        .collection('users')
+        .doc(profile.uid)
+        .set(profile.toJson(), SetOptions(merge: true));
   }
 }

@@ -74,6 +74,200 @@ class _ScoreCounterScreenState extends State<ScoreCounterScreen> {
     });
   }
 
+  void _showMatchEndDialog() {
+    if (_playerScore == 0 && _opponentScore == 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Jouez un match avant d\'enregistrer !'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    // Calculer le score futur après ce match
+    int futurePlayerWins = _round.playerWins;
+    int futureOpponentWins = _round.opponentWins;
+
+    if (_playerScore > _opponentScore) {
+      futurePlayerWins++;
+    } else if (_opponentScore > _playerScore) {
+      futureOpponentWins++;
+    }
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Score en haut au milieu
+                const Text(
+                  'Score',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  '$futurePlayerWins - $futureOpponentWins',
+                  style: const TextStyle(
+                    fontSize: 48,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue,
+                  ),
+                ),
+                const SizedBox(height: 32),
+                // 3 boutons d'options
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      _newMatch();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
+                    child: const Text(
+                      'Nouveau Match',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      _endMatch();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
+                    child: const Text(
+                      'Fin de Match',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _endMatch() async {
+    print('🔥 _endMatch appelé - Fin forcée du match');
+
+    // Déterminer le gagnant
+    String? winnerId;
+    if (_playerScore > _opponentScore) {
+      winnerId = 'player';
+    } else if (_opponentScore > _playerScore) {
+      winnerId = 'opponent';
+    }
+
+    // Créer le match final
+    final match = Match(
+      id: _uuid.v4(),
+      playerScore: _playerScore,
+      opponentScore: _opponentScore,
+      winnerId: winnerId,
+      playerStarted: widget.playerStarts,
+      timestamp: DateTime.now(),
+    );
+
+    // Ajouter le match au round
+    final updatedMatches = [..._round.matches, match];
+
+    // Calculer les victoires
+    int playerWins = 0;
+    int opponentWins = 0;
+    for (var m in updatedMatches) {
+      if (m.winnerId == 'player') playerWins++;
+      if (m.winnerId == 'opponent') opponentWins++;
+    }
+
+    // Forcer la complétion du round
+    final updatedRound = _round.copyWith(
+      matches: updatedMatches,
+      playerWins: playerWins,
+      opponentWins: opponentWins,
+      isCompleted: true, // Forcer la fin
+    );
+
+    await _saveRoundAndNavigate(updatedRound);
+  }
+
+  Future<void> _saveRoundAndNavigate(Round updatedRound) async {
+    // Mettre à jour le tournoi
+    final List<Round> updatedRounds;
+    final roundExists = widget.tournament.rounds.any((r) => r.id == _round.id);
+
+    if (roundExists) {
+      updatedRounds =
+          widget.tournament.rounds.map((r) {
+            if (r.id == _round.id) return updatedRound;
+            return r;
+          }).toList();
+    } else {
+      updatedRounds = [...widget.tournament.rounds, updatedRound];
+    }
+
+    final updatedTournament = Tournament(
+      id: widget.tournament.id,
+      name: widget.tournament.name,
+      playerDeckId: widget.tournament.playerDeckId,
+      rounds: updatedRounds,
+      createdAt: widget.tournament.createdAt,
+      completedAt: widget.tournament.completedAt,
+      isCompleted: false,
+    );
+
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId != null) {
+      try {
+        await _firestoreService
+            .updateTournament(userId, updatedTournament)
+            .timeout(
+              const Duration(seconds: 2),
+              onTimeout: () {
+                print('⏱️ Timeout Firebase');
+              },
+            );
+      } catch (e) {
+        print('❌ Erreur sauvegarde: $e');
+      }
+    }
+
+    // Naviguer vers l'écran de détail
+    if (mounted) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder:
+              (context) =>
+                  TournamentDetailScreen(tournament: updatedTournament),
+        ),
+      );
+    }
+  }
+
   void _newMatch() async {
     print('🔥 _newMatch appelé - Score: $_playerScore vs $_opponentScore');
 
@@ -164,12 +358,14 @@ class _ScoreCounterScreenState extends State<ScoreCounterScreen> {
     if (userId != null) {
       print('💾 Sauvegarde dans Firestore...');
       try {
-        await _firestoreService.updateTournament(userId, updatedTournament).timeout(
-          const Duration(seconds: 2),
-          onTimeout: () {
-            print('⏱️ Timeout Firebase, on continue quand même');
-          },
-        );
+        await _firestoreService
+            .updateTournament(userId, updatedTournament)
+            .timeout(
+              const Duration(seconds: 2),
+              onTimeout: () {
+                print('⏱️ Timeout Firebase, on continue quand même');
+              },
+            );
         print('✅ Sauvegarde réussie');
       } catch (e) {
         print('❌ Erreur sauvegarde (ignorée): $e');
@@ -192,7 +388,9 @@ class _ScoreCounterScreenState extends State<ScoreCounterScreen> {
       }
     } else {
       print('🔄 Match enregistré, réinitialisation des scores');
-      print('📊 Wins avant setState - Player: ${_round.playerWins}, Opponent: ${_round.opponentWins}');
+      print(
+        '📊 Wins avant setState - Player: ${_round.playerWins}, Opponent: ${_round.opponentWins}',
+      );
       // Réinitialiser les scores pour le prochain match
       setState(() {
         _round = updatedRound;
@@ -200,7 +398,9 @@ class _ScoreCounterScreenState extends State<ScoreCounterScreen> {
         _opponentScore = 0;
       });
       print('✅ Scores réinitialisés à 0-0');
-      print('📊 Wins après setState - Player: ${_round.playerWins}, Opponent: ${_round.opponentWins}');
+      print(
+        '📊 Wins après setState - Player: ${_round.playerWins}, Opponent: ${_round.opponentWins}',
+      );
     }
   }
 
@@ -242,7 +442,9 @@ class _ScoreCounterScreenState extends State<ScoreCounterScreen> {
                             Positioned.fill(
                               child: Transform(
                                 alignment: Alignment.center,
-                                transform: Matrix4.rotationZ(3.14159), // 180 degrés
+                                transform: Matrix4.rotationZ(
+                                  3.14159,
+                                ), // 180 degrés
                                 child: Opacity(
                                   opacity: 0.3,
                                   child: Image.asset(
@@ -344,7 +546,7 @@ class _ScoreCounterScreenState extends State<ScoreCounterScreen> {
                             ),
                           ),
                           ElevatedButton(
-                            onPressed: _newMatch,
+                            onPressed: _showMatchEndDialog,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.green,
                               padding: const EdgeInsets.symmetric(
@@ -353,7 +555,7 @@ class _ScoreCounterScreenState extends State<ScoreCounterScreen> {
                               ),
                             ),
                             child: const Text(
-                              'Nouveau Match',
+                              'Terminer le Match',
                               style: TextStyle(fontWeight: FontWeight.bold),
                             ),
                           ),
